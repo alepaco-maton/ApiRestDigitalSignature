@@ -14,7 +14,7 @@ import java.util.List;
 public class ListDsUserResponse {
 
     private Integer id;
-    private String fullName;
+    private String userName;
     private List<ListDsUserDsDocumentResponse> documents;
 
 }

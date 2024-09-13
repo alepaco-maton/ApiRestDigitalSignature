@@ -1,37 +1,42 @@
 package bo.digitalsignature.domain.usecases.document;
 
+import bo.digitalsignature.domain.commons.DigitalSignatureException;
+import bo.digitalsignature.domain.entities.DsUser;
 import bo.digitalsignature.domain.ports.IDsDocumentRepository;
 import bo.digitalsignature.domain.ports.IDsUserRepository;
 import bo.digitalsignature.domain.ports.IMultiLanguageMessagesService;
 import bo.digitalsignature.domain.usecases.cypher.CreateCertAndPairKeyUseCase;
 import lombok.AllArgsConstructor;
-
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.*;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+//import com.itextpdf.text.pdf.PdfReader;
 
 @AllArgsConstructor
 public class SignDocumentUseCase {
 
     private IMultiLanguageMessagesService mlms;
     private IDsDocumentRepository repository;
-    private CreateCertAndPairKeyUseCase createCertAndPairKeyUseCase;
-
     private IDsUserRepository dsUserRepository;
-
-  /*  public static void signDocument(String srcPdfPath, String destPdfPath,
+/*
+    public static void signDocument(String srcPdfPath, String destPdfPath,
                                String certPath, String privateKeyPath,
-                               int userId) throws DigitalSignatureException, CertificateException {
+                               int userId) throws DigitalSignatureException, CertificateException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         DsUser user = this.dsUserRepository.findById(userId);
 
         // Leer el certificado .cer
         CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
 
-        Certificate cert;
+        java.security.cert.Certificate cert = null;
 
         try (FileInputStream fis = new FileInputStream(certPath)) {
             cert = certFactory.generateCertificate(fis);

@@ -12,6 +12,6 @@ import lombok.NoArgsConstructor;
 public class CreateDsUserResponse {
 
     private Integer id;
-    private String fullName;
+    private String userName;
 
 }

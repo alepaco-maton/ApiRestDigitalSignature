@@ -91,7 +91,7 @@ public class DsDocumentController {
             @RequestParam("userId") Long userId) throws DigitalSignatureException, IOException {
         Path filePath = makeFile(file, pathFolderByUser, userId);
 
-        return null;
+        return ResponseEntity.ok(new SignedDocumentResponse(-1, filePath.getFileName().toString()));
         //DsDocument dsDocument = this.signDocumentUseCase.signDocuemnt(filePath, userId);
 
         //return ResponseEntity.ok(new SignedDocumentResponse(dsDocument.getId(), dsDocument.getFileName()));
