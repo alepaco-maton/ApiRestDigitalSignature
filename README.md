@@ -67,9 +67,9 @@ Ejecutar los siguientes comandos
   
 # Documentación de la API.
 ## Swagger
-http://<Direccion IP>:8080/api/v1/swagger-ui/swagger-ui/index.html#/
+http://<Direccion_IP>:8080/api/v1/swagger-ui/swagger-ui/index.html#/
 
 ## Postman 
-./ApiRestDigitalSignature.postman_collection.json
-
+[ApiRestDigitalSignature.postman_collection.json
+](https://github.com/alepaco-maton/ApiRestDigitalSignature/blob/master/ApiRestDigitalSignature.postman_collection.json)
 
