@@ -7,11 +7,13 @@ import bo.digitalsignature.domain.ports.IDsUserRepository;
 import bo.digitalsignature.domain.ports.ILogger;
 import bo.digitalsignature.domain.ports.IMultiLanguageMessagesService;
 import bo.digitalsignature.domain.usecases.document.ReadDsDocumentUseCase;
-import bo.digitalsignature.domain.usecases.pairKeys.CreatePairKeyUseCase;
+import bo.digitalsignature.domain.usecases.cypher.CreateCertAndPairKeyUseCase;
 import bo.digitalsignature.domain.usecases.user.CreateDsUserUseCase;
+import bo.digitalsignature.domain.usecases.user.DeleteDsUserUseCase;
 import bo.digitalsignature.domain.usecases.user.ReadDsUserUseCase;
 import bo.digitalsignature.domain.usecases.user.UpdateDsUserUseCase;
 import bo.digitalsignature.domain.usecases.user.validator.CreateDsUserValidator;
+import bo.digitalsignature.domain.usecases.user.validator.DeleteDsUserValidator;
 import bo.digitalsignature.domain.usecases.user.validator.UpdateDsUserValidator;
 import bo.digitalsignature.infrastructure.api.dto.dsuser.*;
 import bo.digitalsignature.infrastructure.api.exception.ApiDigitalSignatureExceptionResponse;
@@ -25,6 +27,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -40,6 +43,9 @@ import java.util.stream.Collectors;
 public class DsUserController {
 
     public static final String API_RESOURCE = "/api/v1/user";
+
+    @Value("${path.folder.by.user}")
+    private String pathFolderByUser;
 
     @Autowired
     ILogger log;
@@ -61,15 +67,15 @@ public class DsUserController {
 
     UpdateDsUserUseCase updateDsUserUseCase;
 
-/*    DeleteCustomerService deleteClientService;*/
+    DeleteDsUserUseCase deleteDsUserUseCase;
 
     @PostConstruct
     public void init() {
         {
             CreateDsUserValidator validator = new CreateDsUserValidator(repository);
-            CreatePairKeyUseCase createPairKeyUseCase = new CreatePairKeyUseCase(log);
+            CreateCertAndPairKeyUseCase createCertAndPairKeyUseCase = new CreateCertAndPairKeyUseCase(log);
             this.createDsUserUseCase = new CreateDsUserUseCase(messagesService, repository,
-                validator, createPairKeyUseCase);
+                validator, createCertAndPairKeyUseCase);
         }
 
         this.readDsUserUseCase = new ReadDsUserUseCase(repository);
@@ -79,6 +85,12 @@ public class DsUserController {
             UpdateDsUserValidator validator = new UpdateDsUserValidator(repository);
             this.updateDsUserUseCase = new UpdateDsUserUseCase(messagesService, repository,
                     validator);
+        }
+
+        {
+            DeleteDsUserValidator validator = new DeleteDsUserValidator(repository);
+            this.deleteDsUserUseCase = new DeleteDsUserUseCase(messagesService, repository,
+                validator, dsDocumentRepository);
         }
     }
 
@@ -105,7 +117,7 @@ public class DsUserController {
     @PostMapping(consumes = "application/json; charset=UTF-8", produces = "application/json; charset=UTF-8")
     public ResponseEntity<CreateDsUserResponse> create(@RequestBody CreateDsUserRequest request) throws URISyntaxException, DigitalSignatureException {
         DsUser dsUser = new DsUser(request.getUserName());
-        dsUser = createDsUserUseCase.create(dsUser);
+        dsUser = createDsUserUseCase.create(dsUser, pathFolderByUser);
 
         CreateDsUserResponse response = new CreateDsUserResponse(dsUser.getId(), dsUser.getUserName());
 
@@ -170,7 +182,7 @@ public class DsUserController {
 
         return ResponseEntity.ok().build();
     }
-/*
+
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Eliminar cliente",
             description = "Este metodo nos permite eliminar clientes.")
@@ -192,15 +204,14 @@ public class DsUserController {
                             @Content(mediaType = "application/json", schema
                                     = @Schema(implementation = ApiDigitalSignatureExceptionResponse.class))})
     })
-
     @DeleteMapping(path = "/{id}", produces = "application/json; charset=UTF-8")
     public ResponseEntity delete(@Parameter(name = "id",
-            description = "Identificador unico de cliente.",
-            example = "1") @PathVariable int id) throws DigitalSignatureException, ExceptionNotFoundResponse {
-        deleteClientService.delete(id);
+            description = "Identificador unico de usuario.",
+            example = "1") @PathVariable int id) throws DigitalSignatureException, DigitalSignatureNotFoundException {
+        deleteDsUserUseCase.delete(id, pathFolderByUser);
 
         return ResponseEntity.ok().build();
     }
-*/
+
 
 }

@@ -20,6 +20,7 @@ public class DsUserEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String userName;
+    private String cert;
     private String privateKey;
     private String publicKey;
 

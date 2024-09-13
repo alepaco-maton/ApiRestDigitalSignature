@@ -14,4 +14,6 @@ public interface IDsUserRepository {
 
     DsUser findById(Integer id);
 
+    void deleteById(int id);
+
 }

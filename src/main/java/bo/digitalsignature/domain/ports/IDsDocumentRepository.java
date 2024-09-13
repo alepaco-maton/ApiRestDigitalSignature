@@ -7,4 +7,5 @@ public interface IDsDocumentRepository {
 
     List<ListDsUserDsDocumentResponse> findByDsUserId(Integer dsUserId);
 
+    void deleteAllByDsUserId(int id);
 }

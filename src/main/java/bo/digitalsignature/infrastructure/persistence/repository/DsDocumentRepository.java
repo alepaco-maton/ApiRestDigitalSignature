@@ -4,10 +4,12 @@ import bo.digitalsignature.domain.commons.AppTools;
 import bo.digitalsignature.domain.ports.IDsDocumentRepository;
 import bo.digitalsignature.infrastructure.api.dto.dsuser.ListDsUserDsDocumentResponse;
 import bo.digitalsignature.infrastructure.persistence.entity.DsDocumentEntity;
+import bo.digitalsignature.infrastructure.persistence.entity.DsUserEntity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,6 +45,20 @@ public class DsDocumentRepository implements IDsDocumentRepository {
                 .map(entity -> new ListDsUserDsDocumentResponse(
                         entity.getId(), entity.getFileName()))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void deleteAllByDsUserId(int id) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaDelete<DsDocumentEntity> delete = cb.createCriteriaDelete(DsDocumentEntity.class);
+        Root<DsDocumentEntity> root = delete.from(DsDocumentEntity.class);
+
+        // Construimos el predicado para encontrar la entidad por su ID
+        Predicate predicate = cb.equal(root.get("id"), id);
+        delete.where(predicate);
+
+        entityManager.createQuery(delete).executeUpdate();
     }
 
     private Predicate buildPredicate(CriteriaBuilder cb, Root<DsDocumentEntity> root, String dsUserId) {

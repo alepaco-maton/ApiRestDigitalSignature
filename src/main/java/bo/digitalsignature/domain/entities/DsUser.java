@@ -13,6 +13,7 @@ public class DsUser {
 
     private Integer id;
     private String userName;
+    private String cert;
     private String privateKey;
     private String publicKey;
 

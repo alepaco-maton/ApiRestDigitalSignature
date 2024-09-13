@@ -10,7 +10,6 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -55,6 +54,7 @@ public class DsUserRepository implements IDsUserRepository {
 
         DsUserEntity entity = entityManager.createQuery(cq.where(predicate)).getSingleResult();
         entity.setUserName(dsUser.getUserName());
+        entity.setCert(dsUser.getCert());
         entity.setPrivateKey(dsUser.getPrivateKey());
         entity.setPublicKey(dsUser.getPublicKey());
 
@@ -80,7 +80,7 @@ public class DsUserRepository implements IDsUserRepository {
 
         return query.getResultList().stream()
                 .map(entity -> new DsUser(entity.getId(), entity.getUserName(),
-                        entity.getPrivateKey(), entity.getPublicKey()))
+                        entity.getCert(), entity.getPrivateKey(), entity.getPublicKey()))
                 .collect(Collectors.toList());
     }
 
@@ -99,13 +99,27 @@ public class DsUserRepository implements IDsUserRepository {
 
         List<DsUser> list = query.getResultList().stream()
                 .map(entity -> new DsUser(entity.getId(), entity.getUserName(),
-                        entity.getPrivateKey(), entity.getPublicKey()))
+                        entity.getCert(), entity.getPrivateKey(), entity.getPublicKey()))
                 .collect(Collectors.toList());
 
         if(list.isEmpty())
             return null;
 
         return list.get(0);
+    }
+
+    @Override
+    @Transactional
+    public void deleteById(int id) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaDelete<DsUserEntity> delete = cb.createCriteriaDelete(DsUserEntity.class);
+        Root<DsUserEntity> root = delete.from(DsUserEntity.class);
+
+        // Construimos el predicado para encontrar la entidad por su ID
+        Predicate predicate = cb.equal(root.get("id"), id);
+        delete.where(predicate);
+
+        entityManager.createQuery(delete).executeUpdate();
     }
 
     private Predicate buildPredicate(CriteriaBuilder cb, Root<DsUserEntity> root, String fullName) {
