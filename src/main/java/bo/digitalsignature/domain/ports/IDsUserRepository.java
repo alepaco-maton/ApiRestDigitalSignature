@@ -10,6 +10,6 @@ public interface IDsUserRepository {
 
     DsUser update(DsUser dsUser);
 
-    List<DsUser> list(String fullName);
+    List<DsUser> list(String userName);
 
 }

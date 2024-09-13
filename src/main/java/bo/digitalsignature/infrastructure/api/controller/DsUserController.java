@@ -120,11 +120,10 @@ public class DsUserController {
     public List<ListDsUserResponse> list(
             @RequestParam(required = false) @Parameter(name = "userName",
                     description = "Filtrado por el contenido y no sensible a "
-                            + "mayúsculas y minúsculas sobre el campo nombre completo.",
-                    example = "Alex") String fullName,
-            Pageable pageable
+                            + "mayúsculas y minúsculas sobre el campo nombre de usuario.",
+                    example = "alepaco.maton") String userName
     ) throws DigitalSignatureException {
-        return readDsUserUseCase.list(fullName).stream()
+        return readDsUserUseCase.list(userName).stream()
                 .map(model -> new ListDsUserResponse(model.getId(), model.getUserName(),
                         readDsDocumentUseCase.findByDsUserId(model.getId()).stream().
                                 map(modelDocument -> new ListDsUserDsDocumentResponse(
