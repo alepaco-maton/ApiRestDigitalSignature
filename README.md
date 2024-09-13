@@ -6,20 +6,22 @@ Esta API RESTful permite la gestion de usuarios y que cada usuario pueda firmar 
 
 # Funcionalidades:
 
-Usuario
-    Crear: Permite crear un usuario, adicionalmente a esto se crea un certificado autofirmado por cada usuario y sus llave privada y publica.
-        Atributos:
-             Nombre de usuario: debe ser unico por usuario, no menor a 3 caracters y no mayor a 50 caracters. 
-        
-    Actualizar: Permite actualizar los datos del usuario.
-        Atributos:
-             Nombre de usuario: debe ser unico por usuario, no menor a 3 caracters y no mayor a 50 caracters. 
-    
-    Obtener: Permite listar los usuarios regitrados y filtrar por el nombre de usuario, no es sensitivo a mayusculas o minusculas.
-        Atributos:
-            Identificaro unico por usuario, nombre de usuario.
+## Gestion de Usuario
+
+### Crear: 
+Permite crear un usuario, adicionalmente a esto se crea un certificado autofirmado por cada usuario y sus llave privada y publica.
+Atributos: Nombre de usuario: debe ser unico por usuario, no menor a 3 caracters y no mayor a 50 caracters. 
+
+### Actualizar: 
+Permite actualizar los datos del usuario.
+Atributos: Nombre de usuario: debe ser unico por usuario, no menor a 3 caracters y no mayor a 50 caracters. 
+
+### Obtener: 
+Permite listar los usuarios regitrados y filtrar por el nombre de usuario, no es sensitivo a mayusculas o minusculas.
+Atributos: Identificaro unico por usuario, nombre de usuario.
             
-    Eliminiar: Permite eliminar el usuario, su certificado, llave publica, llave privada y eliminar todos sus documentos firmados.
+### Eliminiar: 
+Permite eliminar el usuario, su certificado, llave publica, llave privada y eliminar todos sus documentos firmados.
 
  
 # Documentación de la API.
