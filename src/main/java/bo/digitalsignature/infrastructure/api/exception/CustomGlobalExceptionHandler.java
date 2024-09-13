@@ -2,6 +2,8 @@ package bo.digitalsignature.infrastructure.api.exception;
 
 import java.net.ConnectException;
 
+import bo.digitalsignature.domain.commons.DigitalSignatureException;
+import bo.digitalsignature.domain.commons.DigitalSignatureNotFoundException;
 import bo.digitalsignature.domain.commons.ErrorCode;
 import bo.digitalsignature.infrastructure.services.MultiLanguageMessagesService;
 import lombok.extern.log4j.Log4j2;
@@ -36,12 +38,17 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
                         exception.getMessage()),
                 HttpHeaders.EMPTY, HttpStatus.UNPROCESSABLE_ENTITY);
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("-------------------RESPONSE----------------------\n").
-                append("DATA ").append(out).append(", \n").
-                append("------------------------------------------------\n");
+        return out;
+    }
 
-        log.info(sb.toString());
+    @ExceptionHandler({DigitalSignatureNotFoundException.class})
+    public ResponseEntity<Object> mihandleNotFound(Exception ex, WebRequest request) {
+        DigitalSignatureNotFoundException exception = (DigitalSignatureNotFoundException) ex;
+
+        ResponseEntity<Object> out = new ResponseEntity<>(
+                new ApiDigitalSignatureExceptionResponse(HttpStatus.NOT_FOUND, exception.getCode(),
+                        exception.getMessage()),
+                HttpHeaders.EMPTY, HttpStatus.NOT_FOUND);
 
         return out;
     }
@@ -57,7 +64,7 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
         log.error(ex.getCause(), ex);
 
         StringBuilder sb = new StringBuilder();
-        sb.append("-------------------RESPONSE----------------------\n").
+        sb.append("-------------------RESPONSE - HTTP STATUS : " + HttpStatus.UNPROCESSABLE_ENTITY + " ----------------------\n").
                 append("DATA ").append(out).append(", \n").
                 append("------------------------------------------------\n");
 

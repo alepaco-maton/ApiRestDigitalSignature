@@ -5,7 +5,7 @@ import bo.digitalsignature.domain.ports.IDsUserRepository;
 import bo.digitalsignature.domain.ports.IMultiLanguageMessagesService;
 import bo.digitalsignature.domain.usecases.pairKeys.CreatePairKeyUseCase;
 import bo.digitalsignature.domain.usecases.user.validator.CreateDsUserValidator;
-import bo.digitalsignature.infrastructure.api.exception.DigitalSignatureException;
+import bo.digitalsignature.domain.commons.DigitalSignatureException;
 import bo.digitalsignature.domain.commons.ErrorCode;
 import lombok.AllArgsConstructor;
 

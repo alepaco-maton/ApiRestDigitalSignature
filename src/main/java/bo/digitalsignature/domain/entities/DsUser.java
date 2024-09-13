@@ -16,6 +16,11 @@ public class DsUser {
     private String privateKey;
     private String publicKey;
 
+    public DsUser(Integer id, String userName) {
+        this.id = id;
+        this.userName = userName;
+    }
+
     public DsUser(String userName) {
         this.userName = userName;
     }

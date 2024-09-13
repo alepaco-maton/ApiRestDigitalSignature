@@ -12,4 +12,6 @@ public interface IDsUserRepository {
 
     List<DsUser> list(String userName);
 
+    DsUser findById(Integer id);
+
 }

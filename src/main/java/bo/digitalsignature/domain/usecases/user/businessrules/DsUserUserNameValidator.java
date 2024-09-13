@@ -7,6 +7,8 @@ import bo.digitalsignature.domain.commons.ErrorCode;
 import bo.digitalsignature.domain.ports.IDsUserRepository;
 import lombok.AllArgsConstructor;
 
+import java.util.List;
+
 @AllArgsConstructor
 public class DsUserUserNameValidator implements IValidator<DsUser> {
 
@@ -27,8 +29,16 @@ public class DsUserUserNameValidator implements IValidator<DsUser> {
             return ErrorCode.CREATE_DS_USER_USER_NAME_IS_INVALID;
         }
 
-        if (!repository.list(dsUser.getUserName()).isEmpty()) {
-            return ErrorCode.CREATE_DS_USER_USER_NAME_ALREADY_EXIST;
+        List<DsUser> list = repository.list(dsUser.getUserName());
+
+        if (!list.isEmpty()) {
+            if(dsUser.getId() == null) {
+                return ErrorCode.CREATE_UPDATE_DS_USER_USER_NAME_ALREADY_EXIST;
+            } else {
+                if(!list.get(0).getId().equals(dsUser.getId())) {
+                    return ErrorCode.CREATE_UPDATE_DS_USER_USER_NAME_ALREADY_EXIST;
+                }
+            }
         }
 
         return ErrorCode.SUCCESSFUL;

@@ -1,46 +1,76 @@
 package bo.digitalsignature.infrastructure.api.logs;
 
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.lang.reflect.Type;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.MethodParameter;
-import org.springframework.http.HttpInputMessage;
-import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.servlet.mvc.method.annotation.RequestBodyAdviceAdapter;
+import org.springframework.web.servlet.HandlerInterceptor;
 
 @Log4j2
 @Component
-@ControllerAdvice
-public class RequestBodyInterceptor extends RequestBodyAdviceAdapter {
-
-    @Autowired
-    HttpServletRequest request;
+public class RequestNoBodyIntercept implements HandlerInterceptor {
 
     @Override
-    public HttpInputMessage beforeBodyRead(HttpInputMessage inputMessage, MethodParameter parameter, Type targetType, Class<? extends HttpMessageConverter<?>> converterType) throws IOException {
-        return super.beforeBodyRead(inputMessage, parameter, targetType, converterType);
-    }
-
-    @Override
-    public Object afterBodyRead(Object body, HttpInputMessage inputMessage, MethodParameter parameter, Type targetType, Class<? extends HttpMessageConverter<?>> converterType) {
-        displayReq(request, body);
-        return super.afterBodyRead(body, inputMessage, parameter, targetType, converterType);
-    }
-
-    @Override
-    public boolean supports(MethodParameter methodParameter, Type targetType, Class<? extends HttpMessageConverter<?>> converterType) {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        displayReq(request, null);
+        displayResp(request, response, null);
         return true;
     }
 
-    public void displayReq(HttpServletRequest request, Object body) {
+    private Map<String, String> getHeaders(HttpServletResponse response) {
+        Map<String, String> headers = new HashMap<>();
+        Collection<String> headerMap = response.getHeaderNames();
+        for (String str : headerMap) {
+            headers.put(str, response.getHeader(str));
+        }
+        return headers;
+    }
+
+    public void displayResp(HttpServletRequest request, HttpServletResponse response, Object body) {
+        if ("POST".equals(request.getMethod())
+                || "PUT".equals(request.getMethod())
+                || "GET".equals(request.getMethod())
+                || "DELETE".equals(request.getMethod())
+                || "PATH".equals(request.getMethod())) {
+            return;
+        }
+
+        StringBuilder respMessage = new StringBuilder();
+        Map<String, String> headersRequest = getHeaders(request);
+        Map<String, String> headers = getHeaders(response);
+
+        respMessage.append("-------------------RESPONSE - HTTP STATUS : " + response.getStatus() + " ----------------------\n");
+        respMessage.append(" method = [").append(request.getMethod()).append("]").append(", \n");
+
+        if (!headersRequest.isEmpty()) {
+            respMessage.append(" RequestHeaders = [").append(headersRequest).append("]").append(", \n");
+        }
+
+        if (!headers.isEmpty()) {
+            respMessage.append(" ResponseHeaders = [").append(headers).append("]").append(", \n");
+        }
+
+        respMessage.append("DATA ").append(", \n");
+        respMessage.append(" responseBody = [").append(body).append("]").append(", \n");
+
+        respMessage.append("------------------------------------------------\n");
+
+        log.info(respMessage.toString());
+    }
+
+    public void displayReq(HttpServletRequest request, Object body) throws ServletException, IOException {
+        if ("POST".equals(request.getMethod())
+                || "PUT".equals(request.getMethod())
+                || "PATH".equals(request.getMethod())) {
+            return;
+        }
+
         StringBuilder reqMessage = new StringBuilder();
         Map<String, String> parameters = getParameters(request);
         Map<String, String> headers = getHeaders(request);
@@ -58,11 +88,6 @@ public class RequestBodyInterceptor extends RequestBodyAdviceAdapter {
 
         if (!parameters.isEmpty()) {
             reqMessage.append(" parameters = [").append(parameters).append("] ").append(", \n");
-        }
-
-        if (!Objects.isNull(body)) {
-            reqMessage.append("DATA ").append(", \n");
-            reqMessage.append(" body = [").append(body).append("]").append(", \n");
         }
 
         reqMessage.append("------------------------------------------------\n");
@@ -94,5 +119,4 @@ public class RequestBodyInterceptor extends RequestBodyAdviceAdapter {
         }
         return parameters;
     }
-
 }

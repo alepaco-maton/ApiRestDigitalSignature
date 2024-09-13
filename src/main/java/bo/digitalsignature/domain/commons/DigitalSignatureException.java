@@ -1,4 +1,4 @@
-package bo.digitalsignature.infrastructure.api.exception;
+package bo.digitalsignature.domain.commons;
 
 import lombok.Getter;
 

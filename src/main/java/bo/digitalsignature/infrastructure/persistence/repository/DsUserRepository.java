@@ -84,6 +84,30 @@ public class DsUserRepository implements IDsUserRepository {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public DsUser findById(Integer id) {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<DsUserEntity> criteriaQuery = criteriaBuilder.createQuery(DsUserEntity.class);
+        Root<DsUserEntity> queryRoot = criteriaQuery.from(DsUserEntity.class);
+
+        Predicate predicate = criteriaBuilder.conjunction();
+        predicate = criteriaBuilder.and(predicate, criteriaBuilder.like(queryRoot.get("id").as(String.class), "%" + id.toString().trim().toUpperCase() + "%"));
+
+        criteriaQuery.select(queryRoot).where(predicate);
+
+        TypedQuery<DsUserEntity> query = entityManager.createQuery(criteriaQuery);
+
+        List<DsUser> list = query.getResultList().stream()
+                .map(entity -> new DsUser(entity.getId(), entity.getUserName(),
+                        entity.getPrivateKey(), entity.getPublicKey()))
+                .collect(Collectors.toList());
+
+        if(list.isEmpty())
+            return null;
+
+        return list.get(0);
+    }
+
     private Predicate buildPredicate(CriteriaBuilder cb, Root<DsUserEntity> root, String fullName) {
         Predicate predicate = cb.conjunction();
 
