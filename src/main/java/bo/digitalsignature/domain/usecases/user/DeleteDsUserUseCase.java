@@ -1,5 +1,6 @@
 package bo.digitalsignature.domain.usecases.user;
 
+import bo.digitalsignature.domain.commons.AppTools;
 import bo.digitalsignature.domain.commons.DigitalSignatureException;
 import bo.digitalsignature.domain.commons.DigitalSignatureNotFoundException;
 import bo.digitalsignature.domain.commons.ErrorCode;
@@ -7,11 +8,12 @@ import bo.digitalsignature.domain.ports.IDsDocumentRepository;
 import bo.digitalsignature.domain.ports.IDsUserRepository;
 import bo.digitalsignature.domain.ports.IMultiLanguageMessagesService;
 import bo.digitalsignature.domain.usecases.user.validator.DeleteDsUserValidator;
+import bo.digitalsignature.infrastructure.api.dto.dsuser.ListDsUserDsDocumentResponse;
 import lombok.AllArgsConstructor;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.util.List;
 
 @AllArgsConstructor
 public class DeleteDsUserUseCase {
@@ -36,31 +38,14 @@ public class DeleteDsUserUseCase {
 
         this.dsDocumentRepository.deleteAllByDsUserId(id);
 
-        repository.deleteById(id);
-
+        this.repository.deleteById(id);
 
         try {
-            deleteDirectoryRecursively(Paths.get(pathFolderByUser + File.separator + id));
+            AppTools.deleteDirectoryRecursively(Paths.get(pathFolderByUser + File.separator + id));
         } catch (IOException e) {
             throw new DigitalSignatureException(ErrorCode.ERROR_PROCESSING_THE_TRANSACTION.getCode(),
                     e.getMessage(), e);
         }
 
-    }
-
-    public   void deleteDirectoryRecursively(Path path) throws IOException {
-        Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                Files.delete(file); // Eliminar archivo
-                return FileVisitResult.CONTINUE;
-            }
-
-            @Override
-            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                Files.delete(dir); // Eliminar directorio después de eliminar archivos dentro
-                return FileVisitResult.CONTINUE;
-            }
-        });
     }
 }
