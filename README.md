@@ -6,6 +6,8 @@ Esta API RESTful permite la gestion de usuarios y que cada usuario pueda firmar 
 
 # Funcionalidades:
 
+<img width="1423" alt="imagen" src="https://github.com/user-attachments/assets/4b747f14-ab72-4cd8-b762-a0e1ad07aa20">
+
 ## Gestion de Usuario
 
 ### Crear: 
@@ -28,6 +30,24 @@ Permite listar los usuarios regitrados y filtrar por el nombre de usuario, no es
 Permite eliminar el usuario, su certificado, llave publica, llave privada y eliminar todos sus documentos firmados.
 #### Atributos: 
             Id: Identificaro unico por usuario
+
+## Gestion de Documentos
+
+### Firmar Documento (Solo documentos DPF): 
+Permite firmar un documento del tipo PDF con el certificado del usuario.
+#### Atributos: 
+            userId: identificador unico del usuario.
+            file: documento PDF a firmar.
+
+### Descargar documento: 
+Permite descargar el documento firmado por el usuario.
+#### Atributos: 
+            id: identificador unico del documento.
+            
+### Obtener informacion del documento (Solo documentos DPF):
+Permite obtener la informacaion de la firma del documento.
+#### Atributos: 
+            file: documento PDF del que se quiere obtener la informacion .
    
 # Requisitos 
 - Java 17+
