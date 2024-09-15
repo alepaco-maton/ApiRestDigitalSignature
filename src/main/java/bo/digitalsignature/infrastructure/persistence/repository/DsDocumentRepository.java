@@ -1,6 +1,7 @@
 package bo.digitalsignature.infrastructure.persistence.repository;
 
 import bo.digitalsignature.domain.commons.AppTools;
+import bo.digitalsignature.domain.entities.DsDocument;
 import bo.digitalsignature.domain.ports.IDsDocumentRepository;
 import bo.digitalsignature.infrastructure.api.dto.dsuser.ListDsUserDsDocumentResponse;
 import bo.digitalsignature.infrastructure.persistence.entity.DsDocumentEntity;
@@ -10,6 +11,7 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,6 +21,9 @@ public class DsDocumentRepository implements IDsDocumentRepository {
 
     @PersistenceContext
     private EntityManager entityManager;
+
+    @Autowired
+    private DsUserRepository dsUserRepository;
 
     public DsDocumentRepository(EntityManager entityManager) {
         this.entityManager = entityManager;
@@ -54,11 +59,50 @@ public class DsDocumentRepository implements IDsDocumentRepository {
         CriteriaDelete<DsDocumentEntity> delete = cb.createCriteriaDelete(DsDocumentEntity.class);
         Root<DsDocumentEntity> root = delete.from(DsDocumentEntity.class);
 
-        // Construimos el predicado para encontrar la entidad por su ID
-        Predicate predicate = cb.equal(root.get("id"), id);
+        Predicate predicate = cb.equal(root.get("user").get("id"), id);
         delete.where(predicate);
 
         entityManager.createQuery(delete).executeUpdate();
+    }
+
+    @Override
+    @Transactional
+    public DsDocument save(DsDocument model) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<DsUserEntity> cq = cb.createQuery(DsUserEntity.class);
+        Root<DsUserEntity> root = cq.from(DsUserEntity.class);
+
+        DsDocumentEntity entity = new DsDocumentEntity();
+        entity.setPath(model.getPath());
+        entity.setUser(dsUserRepository.findEntityById(model.getDsUserId()));
+        entity.setFileName(model.getFileName());
+
+        entityManager.persist(entity);
+
+        model.setId(entity.getId());
+
+        return model;
+    }
+
+    @Override
+    public DsDocumentEntity findEntityById(Integer id) {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<DsDocumentEntity> criteriaQuery = criteriaBuilder.createQuery(DsDocumentEntity.class);
+        Root<DsDocumentEntity> queryRoot = criteriaQuery.from(DsDocumentEntity.class);
+
+        Predicate predicate = criteriaBuilder.conjunction();
+        predicate = criteriaBuilder.and(predicate, criteriaBuilder.like(queryRoot.get("id").as(String.class), "%" + id.toString().trim().toUpperCase() + "%"));
+
+        criteriaQuery.select(queryRoot).where(predicate);
+
+        TypedQuery<DsDocumentEntity> query = entityManager.createQuery(criteriaQuery);
+
+        List<DsDocumentEntity> list = query.getResultList();
+
+        if(list.isEmpty())
+            return null;
+
+        return list.get(0);
     }
 
     private Predicate buildPredicate(CriteriaBuilder cb, Root<DsDocumentEntity> root, String dsUserId) {

@@ -16,7 +16,7 @@ public class DsDocumentEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "ds_user_id", referencedColumnName = "id")
     private DsUserEntity user;
     private String fileName;

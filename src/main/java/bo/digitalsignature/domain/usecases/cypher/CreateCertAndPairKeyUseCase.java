@@ -59,13 +59,14 @@ public class CreateCertAndPairKeyUseCase {
     private String createCertificate(String certPath, KeyPair keyPair) throws Exception {
         // Crear el certificado
         X509V3CertificateGenerator certGen = new X509V3CertificateGenerator();
-        X500Principal issuer = new X500Principal("CN=Test Certificate");
+        X500Principal issuer = new X500Principal("CN=Api Rest - Digital Signature");
+        X500Principal subject = new X500Principal("CN=alepaco.maton");
 
         certGen.setSerialNumber(BigInteger.valueOf(System.currentTimeMillis()));
         certGen.setIssuerDN(issuer);
         certGen.setNotBefore(new Date(System.currentTimeMillis() - 1000L * 60 * 60 * 24 * 30));
         certGen.setNotAfter(new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 365));
-        certGen.setSubjectDN(issuer); // Certificado autofirmado
+        certGen.setSubjectDN(subject); // Certificado autofirmado
         certGen.setPublicKey(keyPair.getPublic());
         certGen.setSignatureAlgorithm("SHA256WithRSAEncryption");
 

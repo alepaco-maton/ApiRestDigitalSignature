@@ -86,6 +86,16 @@ public class DsUserRepository implements IDsUserRepository {
 
     @Override
     public DsUser findById(Integer id) {
+        DsUserEntity entity = findEntityById(id);
+
+        if(entity == null)
+            return null;
+
+        return new DsUser(entity.getId(), entity.getUserName(),
+                entity.getCert(), entity.getPrivateKey(), entity.getPublicKey());
+    }
+
+    public DsUserEntity findEntityById(Integer id) {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<DsUserEntity> criteriaQuery = criteriaBuilder.createQuery(DsUserEntity.class);
         Root<DsUserEntity> queryRoot = criteriaQuery.from(DsUserEntity.class);
@@ -97,10 +107,7 @@ public class DsUserRepository implements IDsUserRepository {
 
         TypedQuery<DsUserEntity> query = entityManager.createQuery(criteriaQuery);
 
-        List<DsUser> list = query.getResultList().stream()
-                .map(entity -> new DsUser(entity.getId(), entity.getUserName(),
-                        entity.getCert(), entity.getPrivateKey(), entity.getPublicKey()))
-                .collect(Collectors.toList());
+        List<DsUserEntity> list = query.getResultList();
 
         if(list.isEmpty())
             return null;

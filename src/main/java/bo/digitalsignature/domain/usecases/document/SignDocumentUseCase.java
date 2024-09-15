@@ -1,17 +1,23 @@
 package bo.digitalsignature.domain.usecases.document;
 
 import bo.digitalsignature.domain.commons.DigitalSignatureException;
+import bo.digitalsignature.domain.commons.ErrorCode;
+import bo.digitalsignature.domain.entities.DsDocument;
 import bo.digitalsignature.domain.entities.DsUser;
 import bo.digitalsignature.domain.ports.IDsDocumentRepository;
 import bo.digitalsignature.domain.ports.IDsUserRepository;
-import bo.digitalsignature.domain.ports.IMultiLanguageMessagesService;
+import bo.digitalsignature.domain.ports.ILogger;
 import bo.digitalsignature.domain.usecases.cypher.CreateCertAndPairKeyUseCase;
+import com.itextpdf.text.BaseColor;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Image;
+import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.pdf.*;
+import com.itextpdf.text.pdf.security.*;
 import lombok.AllArgsConstructor;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.*;
 import java.security.cert.CertificateException;
@@ -19,54 +25,80 @@ import java.security.cert.CertificateFactory;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-//import com.itextpdf.text.pdf.PdfReader;
+import java.util.Calendar;
 
 @AllArgsConstructor
 public class SignDocumentUseCase {
 
-    private IMultiLanguageMessagesService mlms;
+    private ILogger log;
     private IDsDocumentRepository repository;
     private IDsUserRepository dsUserRepository;
-/*
-    public static void signDocument(String srcPdfPath, String destPdfPath,
-                               String certPath, String privateKeyPath,
-                               int userId) throws DigitalSignatureException, CertificateException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        DsUser user = this.dsUserRepository.findById(userId);
 
-        // Leer el certificado .cer
+    private java.security.cert.Certificate loadCertificate(String pathCertificate)
+            throws DigitalSignatureException, CertificateException {
         CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
 
-        java.security.cert.Certificate cert = null;
-
-        try (FileInputStream fis = new FileInputStream(certPath)) {
-            cert = certFactory.generateCertificate(fis);
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        try (FileInputStream fis = new FileInputStream(pathCertificate)) {
+            return certFactory.generateCertificate(fis);
+        } catch (IOException | CertificateException e) {
+            log.error("No se pudo cargar el certificado del usuario.");
+            throw new DigitalSignatureException(ErrorCode.SIGN_DOCUMENT_CERTIFICATE_FAIL_OPEN.getCode(),
+                    e.getMessage(), e);
         }
+    }
 
-        // Leer la clave privada
-        PrivateKey privateKey = loadPrivateKey(privateKeyPath);
-
-        // Abrir el PDF a firmar
-        PdfReader reader = new PdfReader(srcPdfPath);
-        FileOutputStream os = new FileOutputStream(destPdfPath);
+    private PdfSignatureAppearance signFeature(Path pathFile, String pathSignedDocument,
+                                               int userId) throws IOException, DocumentException {
+        PdfReader reader = new PdfReader(pathFile.toAbsolutePath().toString());
+        FileOutputStream os = new FileOutputStream(pathSignedDocument);
         PdfStamper stamper = PdfStamper.createSignature(reader, os, '\0');
 
-        // Configurar el campo de firma
         PdfSignatureAppearance appearance = stamper.getSignatureAppearance();
-        appearance.setReason("Firma Digital");
-        appearance.setLocation("Localización");
-        appearance.setVisibleSignature("signature");  // Nombre del campo de firma
+        appearance.setReason("Firma para proteger la integridad del documento, " +
+                "firmado por el usuario con el Id : " + userId);
+        appearance.setLocation("Api Rest - DigitalSignature by alepaco.maton");
+        appearance.setContact("alepaco.maton@gmail.com");
+        appearance.setSignDate(Calendar.getInstance());
+        appearance.setVisibleSignature(new Rectangle(
+                100, 100, 500, 500), 1, "sig");
 
-        // Crear el objeto para la firma
-        ExternalSignature pks = new PrivateKeySignature(privateKey, "SHA-256", "BC");
+        BaseFont bf = BaseFont.createFont();
+        appearance.getAppearance().setColorFill(BaseColor.BLUE);
+        appearance.getAppearance().setFontAndSize(bf, 15);
+
+        //Image img = Image.getInstance("./logo.png");
+        //appearance.setImage(img);
+        //appearance.getImage().setRotation(45);
+
+        return appearance;
+    }
+
+    public DsDocument signDocument(Path pathFile, String pathFolderByUser, int userId) throws DigitalSignatureException, GeneralSecurityException, IOException, DocumentException {
+        DsUser user = this.dsUserRepository.findById(userId);
+
+        String pathSignedDocument = pathFolderByUser + File.separator +
+                userId + File.separator + pathFile.getFileName().toString();
+
+        java.security.cert.Certificate cert =  loadCertificate(user.getCert());
+        PrivateKey privateKey = loadPrivateKey(user.getPrivateKey());
+
+        PdfSignatureAppearance appearance = signFeature(pathFile,
+                pathSignedDocument, userId);
+
+        ExternalSignature pks = new PrivateKeySignature(privateKey,
+                "SHA256", "BC");
         ExternalDigest digest = new BouncyCastleDigest();
 
-        MakeSignature.signDetached(appearance, digest, pks, new Certificate[]{cert}, null, null, null, 0, MakeSignature.CryptoStandard.CMS);
+        MakeSignature.signDetached(appearance, digest, pks,
+                new java.security.cert.Certificate[]{cert},
+                null, null, null, 0,
+                MakeSignature.CryptoStandard.CMS);
+
+        return repository.save(new DsDocument(
+                null, userId, pathFile.getFileName().toString(),
+                pathSignedDocument));
     }
-*/
+
     public static PrivateKey loadPrivateKey(String privateKeyPath) throws IOException,
             NoSuchAlgorithmException, InvalidKeySpecException
     {
